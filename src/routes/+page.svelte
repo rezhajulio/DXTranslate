@@ -7,12 +7,14 @@
 	import LangSelect from '$lib/components/LangSelect.svelte';
 	import DxTextareaInput from '$lib/components/DXTextareaInput.svelte';
 	import DxTextareaResult from '$lib/components/DXTextareaResult.svelte';
+	import AlertBox from '$lib/components/AlertBox.svelte';
 
 	let text = '';
 	let translatedText = '';
 	let alternatives: string[] = [];
 	let detectedLang = '';
 	let isLoading = false;
+	let errorMsg = '';
 
 	// Placeholder nilai awal
 	let source_lang = writable('');
@@ -46,6 +48,11 @@
 		try {
 			const res = await fetch('/translate', { method: 'POST', body: JSON.stringify(body) });
 			const data: TranslateResult = await res.json();
+
+			if (!res.ok) {
+				throw new Error(data?.error || 'Hmmm... this is not right, if this error persists, please file a bug report');
+			}
+
 			translatedText = data.translatedText;
 			detectedLang = data.detectedLanguage.language;
 			alternatives = data.alternatives;
@@ -53,6 +60,7 @@
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
 			console.error(error.message);
+			errorMsg = error.message;
 			isLoading = false;
 		}
 	}
@@ -67,6 +75,13 @@
 </script>
 
 <div>
+	{#if errorMsg}
+		<AlertBox
+			variant="danger"
+			title="Translation Error"
+			description={errorMsg}
+		/>
+	{/if}
 	<div class="lang-select">
 		<LangSelect
 			label="Source language"

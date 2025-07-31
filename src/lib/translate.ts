@@ -1,4 +1,6 @@
 import axios, { AxiosError } from 'axios';
+import https from 'https';
+import crypto from 'crypto';
 
 export interface TranslateResult {
 	detectedLanguage: {
@@ -7,24 +9,46 @@ export interface TranslateResult {
 	};
 	translatedText: string;
 	alternatives: string[];
+	message?: string;
+	error?: string;
 }
 
 const DEEPL_BASE_URL = 'https://www2.deepl.com/jsonrpc';
 const headers = {
 	'Content-Type': 'application/json',
-	Accept: '*/*',
-	Referer: 'https://www.deepl.com/',
-	Origin: 'chrome-extension://cofdbpoegempjloogbagkncekinflcnj',
-	'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,zh;q=0.5',
-	'Accept-Encoding': 'gzip, deflate, br',
-	'Pragma': 'no-cache',
-	'Priority': 'u=1, i',
-	'Sec-Fetch-Dest': 'empty',
-	'Sec-Fetch-Mode': 'cors',
-	'Sec-Fetch-Site': 'none',
-	'User-Agent': 'DeepLBrowserExtension/1.28.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-	Connection: 'keep-alive'
+	'Accept-Encoding': 'gzip, deflate, br'
+	// Accept: '*/*',
+	// 'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,zh;q=0.5',
+	// 'Pragma': 'no-cache',
+	// 'Priority': 'u=1, i',
+	// 'Sec-Fetch-Dest': 'empty',
+	// 'Sec-Fetch-Mode': 'cors',
+	// 'Sec-Fetch-Site': 'none',
+	// 'User-Agent': 'DeepLBrowserExtension/1.28.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+	// Connection: 'keep-alive'
 };
+
+function getHttpsAgent(): https.Agent {
+	// get default ciphers
+	const defaultCiphers = crypto.constants.defaultCipherList.split(':');
+
+	// shuffle default ciphers
+	const shuffledCiphers = [
+		...defaultCiphers.slice(0, 3),
+		...defaultCiphers
+			.slice(3)
+			.map((c) => ({ cipher: c, sort: Math.random() }))
+			.sort((a, b) => a.sort - b.sort)
+			.map((o) => o.cipher)
+	].join(':');
+
+	// create https agent
+	const httpsAgent = new https.Agent({
+		ciphers: shuffledCiphers
+	});
+
+	return httpsAgent;
+}
 
 function getICount(translateText: string): number {
 	return (translateText || '').split('i').length - 1;
@@ -77,7 +101,10 @@ export async function translate(
 	}
 
 	try {
-		const response = await axios.post(DEEPL_BASE_URL, postDataStr, { headers });
+		const response = await axios.post(DEEPL_BASE_URL, postDataStr, {
+			headers,
+			httpsAgent: getHttpsAgent()
+		});
 		const result: TranslateResult = {
 			detectedLanguage: {
 				language: response.data.result.lang,
