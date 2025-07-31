@@ -9,6 +9,8 @@ export interface TranslateResult {
 	};
 	translatedText: string;
 	alternatives: string[];
+	message?: string;
+	error?: string;
 }
 
 const DEEPL_BASE_URL = 'https://www2.deepl.com/jsonrpc';

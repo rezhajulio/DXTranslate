@@ -1,5 +1,6 @@
 <script>
 	import '@picocss/pico/css/pico.min.css';
+	import '@picocss/pico/css/pico.colors.min.css'
 	import { Coffee, Github } from 'lucide-svelte';
 	import { browser, dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
