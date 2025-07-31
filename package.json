@@ -32,6 +32,7 @@
 	"type": "module",
 	"dependencies": {
 		"@picocss/pico": "^2.0.6",
+		"@types/node": "^24.1.0",
 		"@vercel/analytics": "^1.4.1",
 		"lucide-svelte": "^0.447.0"
 	}
