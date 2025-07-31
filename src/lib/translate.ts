@@ -12,17 +12,15 @@ export interface TranslateResult {
 const DEEPL_BASE_URL = 'https://www2.deepl.com/jsonrpc';
 const headers = {
 	'Content-Type': 'application/json',
-	Accept: '*/*',
-	Referer: 'https://www.deepl.com/',
-	Origin: 'chrome-extension://cofdbpoegempjloogbagkncekinflcnj',
-	'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,zh;q=0.5',
+	// Accept: '*/*',
+	// 'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,zh;q=0.5',
 	'Accept-Encoding': 'gzip, deflate, br',
 	'Pragma': 'no-cache',
-	'Priority': 'u=1, i',
-	'Sec-Fetch-Dest': 'empty',
-	'Sec-Fetch-Mode': 'cors',
-	'Sec-Fetch-Site': 'none',
-	'User-Agent': 'DeepLBrowserExtension/1.28.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+	// 'Priority': 'u=1, i',
+	// 'Sec-Fetch-Dest': 'empty',
+	// 'Sec-Fetch-Mode': 'cors',
+	// 'Sec-Fetch-Site': 'none',
+	// 'User-Agent': 'DeepLBrowserExtension/1.28.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
 	Connection: 'keep-alive'
 };
 
