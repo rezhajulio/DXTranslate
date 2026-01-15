@@ -8,7 +8,10 @@
 
 	let baseUrl = browser ? window.location.origin : '';
 
-	injectAnalytics({ mode: dev ? 'development' : 'production' });
+	const isVercel = browser && window.location.hostname.includes('vercel.app');
+	if (!dev && isVercel) {
+		injectAnalytics({ mode: 'production' });
+	}
 </script>
 
 <svelte:head>
