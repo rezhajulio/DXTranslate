@@ -15,6 +15,7 @@
 	let detectedLang = '';
 	let isLoading = false;
 	let errorMsg = '';
+	let abortController: AbortController | null = null;
 
 	// Placeholder nilai awal
 	let source_lang = writable('');
@@ -31,6 +32,11 @@
 	});
 
 	async function getTranslate() {
+		// Abort any pending request to prevent race conditions
+		if (abortController) {
+			abortController.abort();
+		}
+
 		if (!text) {
 			detectedLang = '';
 			translatedText = '';
@@ -40,6 +46,8 @@
 		}
 
 		isLoading = true;
+		abortController = new AbortController();
+
 		const body = {
 			source: $source_lang,
 			target: $target_lang,
@@ -53,7 +61,8 @@
 					'Content-Type': 'application/json',
 					Accept: 'application/json'
 				},
-				body: JSON.stringify(body)
+				body: JSON.stringify(body),
+				signal: abortController.signal
 			});
 			const data: TranslateResult = await res.json();
 
@@ -66,10 +75,14 @@
 			detectedLang = data.detectedLanguage.language;
 			alternatives = data.alternatives;
 			isLoading = false;
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (error: any) {
-			console.error(error.message);
-			errorMsg = error.message;
+		} catch (error: unknown) {
+			// Ignore aborted requests
+			if (error instanceof Error && error.name === 'AbortError') {
+				return;
+			}
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			console.error(message);
+			errorMsg = message;
 			isLoading = false;
 		}
 	}
