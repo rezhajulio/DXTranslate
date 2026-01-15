@@ -19,8 +19,16 @@
 		aria-label="Translate text input"
 	></textarea>
 	{#if value}
-		<button class="delete-button" on:click={() => (value = '')}>
-			<X size="24" aria-label="clear" />
+		<button
+			type="button"
+			class="delete-button"
+			aria-label="Clear input"
+			on:click={() => {
+				value = '';
+				handleValue();
+			}}
+		>
+			<X size="24" />
 		</button>
 	{/if}
 </div>
