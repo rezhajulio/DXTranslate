@@ -35,6 +35,7 @@
 			detectedLang = '';
 			translatedText = '';
 			alternatives = [];
+			errorMsg = '';
 			return false;
 		}
 
@@ -46,13 +47,21 @@
 		};
 
 		try {
-			const res = await fetch('/translate', { method: 'POST', body: JSON.stringify(body) });
+			const res = await fetch('/translate', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Accept: 'application/json'
+				},
+				body: JSON.stringify(body)
+			});
 			const data: TranslateResult = await res.json();
 
 			if (!res.ok) {
 				throw new Error(data?.error || 'Hmmm... this is not right, if this error persists, please file a bug report');
 			}
 
+			errorMsg = '';
 			translatedText = data.translatedText;
 			detectedLang = data.detectedLanguage.language;
 			alternatives = data.alternatives;
