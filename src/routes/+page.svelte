@@ -96,12 +96,14 @@
 			label="Source language"
 			bind:value={$source_lang}
 			on:change={getTranslate}
+			disabled={isLoading}
 			{detectedLang}
 			{langs}
 		/>
 		<button
+			type="button"
 			on:click={swapLangHandler}
-			disabled={$source_lang === 'AUTO' && !detectedLang}
+			disabled={isLoading || ($source_lang === 'AUTO' && !detectedLang)}
 			class="swap-button"
 			title="Swap language"
 		>
@@ -111,6 +113,7 @@
 			label="Target language"
 			bind:value={$target_lang}
 			on:change={getTranslate}
+			disabled={isLoading}
 			langs={langs.slice(1)}
 		/>
 	</div>
