@@ -37,9 +37,9 @@ function getHttpsAgent(): https.Agent {
 		...defaultCiphers.slice(0, 3),
 		...defaultCiphers
 			.slice(3)
-			.map((c) => ({ cipher: c, sort: Math.random() }))
-			.sort((a, b) => a.sort - b.sort)
-			.map((o) => o.cipher)
+			.map((c: string) => ({ cipher: c, sort: Math.random() }))
+			.sort((a: { sort: number }, b: { sort: number }) => a.sort - b.sort)
+			.map((o: { cipher: string }) => o.cipher)
 	].join(':');
 
 	// create https agent
@@ -73,7 +73,7 @@ export async function translate(
 	sourceLang = 'AUTO',
 	targetLang = 'EN',
 	alternativeCount = 0
-): Promise<TranslateResult | undefined> {
+): Promise<TranslateResult> {
 	const iCount = getICount(text);
 	const id = getRandomNumber();
 
@@ -130,5 +130,7 @@ export async function translate(
 
 			throw new Error(err.message);
 		}
+
+		throw new Error(err instanceof Error ? err.message : 'Unknown translation error');
 	}
 }
