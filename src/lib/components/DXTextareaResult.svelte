@@ -7,7 +7,7 @@
 </script>
 
 <div class="dx-textarea">
-	<textarea aria-label="Translation result" {value} readonly={!value}></textarea>
+	<textarea aria-label="Translation result" {value} readonly></textarea>
 	<Alternatives {alternatives} />
 	<div class={isLoading ? 'loading' : ''}></div>
 </div>
