@@ -6,6 +6,7 @@
 	export let langs: Langs[];
 	export let detectedLang = '';
 	export let label = '';
+	export let disabled = false;
 
 	const dispatch = createEventDispatcher<{ change: string }>();
 
@@ -26,7 +27,7 @@
 	}
 </script>
 
-<select aria-label={label} bind:value on:change={handleChange} required>
+<select aria-label={label} bind:value on:change={handleChange} {disabled} required>
 	{#each langs as lang}
 		<option value={lang.code}>{getOptionLabel(lang)}</option>
 	{/each}
