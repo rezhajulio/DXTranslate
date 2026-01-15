@@ -1,17 +1,20 @@
-export default function debounce(
-	node: HTMLElement,
-	params: { value: unknown; func: () => void; duration?: number }
-) {
-	let timer: number | undefined;
+interface DebounceParams {
+	value: unknown;
+	func: () => void;
+	duration?: number;
+}
+
+export default function debounce(_node: HTMLElement, params: DebounceParams) {
+	let timer: ReturnType<typeof setTimeout> | undefined;
 
 	return {
-		update() {
-			clearTimeout(timer);
-			timer = setTimeout(params.func, params.duration);
+		update(newParams: DebounceParams) {
+			params = newParams;
+			if (timer) clearTimeout(timer);
+			timer = setTimeout(params.func, params.duration ?? 300);
 		},
 		destroy() {
-			clearTimeout(timer);
-			node.removeEventListener('change', () => timer);
+			if (timer) clearTimeout(timer);
 		}
 	};
 }
