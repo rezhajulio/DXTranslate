@@ -3,12 +3,12 @@ import debounce from './debounce';
 
 describe('debounce action', () => {
 	let mockNode: HTMLElement;
-	let mockFunc: ReturnType<typeof vi.fn>;
+	let mockFunc: ReturnType<typeof vi.fn<() => void>>;
 
 	beforeEach(() => {
 		vi.useFakeTimers();
 		mockNode = document.createElement('div');
-		mockFunc = vi.fn();
+		mockFunc = vi.fn<() => void>();
 	});
 
 	afterEach(() => {
@@ -60,7 +60,7 @@ describe('debounce action', () => {
 	});
 
 	it('receives new params on update', () => {
-		const newFunc = vi.fn();
+		const newFunc = vi.fn<() => void>();
 		const action = debounce(mockNode, { value: 'test', func: mockFunc });
 
 		action.update({ value: 'new', func: newFunc, duration: 100 });

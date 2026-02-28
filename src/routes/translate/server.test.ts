@@ -2,30 +2,43 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from './+server';
 
-vi.mock('$lib/translate', () => ({
+vi.mock('$lib/server/translate', () => ({
 	translate: vi.fn()
 }));
 
-import { translate } from '$lib/translate';
+import { translate } from '$lib/server/translate';
 
 const mockTranslate = vi.mocked(translate);
 
-function createRequest(body: unknown, options?: { invalidJson?: boolean }): Request {
+function createRequest(
+	body: unknown,
+	options?: { invalidJson?: boolean; contentLength?: number }
+): Request {
 	if (options?.invalidJson) {
 		return new Request('http://localhost/translate', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: {
+				'Content-Type': 'application/json',
+				...(options.contentLength ? { 'Content-Length': String(options.contentLength) } : {})
+			},
 			body: 'invalid json{'
 		});
 	}
+	const bodyStr = JSON.stringify(body);
 	return new Request('http://localhost/translate', {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body)
+		headers: {
+			'Content-Type': 'application/json',
+			...(options?.contentLength ? { 'Content-Length': String(options.contentLength) } : {})
+		},
+		body: bodyStr
 	});
 }
 
-async function callPOST(body: unknown, options?: { invalidJson?: boolean }) {
+async function callPOST(
+	body: unknown,
+	options?: { invalidJson?: boolean; contentLength?: number }
+) {
 	const request = createRequest(body, options);
 	return POST({ request } as Parameters<typeof POST>[0]);
 }
@@ -34,10 +47,16 @@ describe('POST /translate', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockTranslate.mockResolvedValue({
-			detectedLanguage: 'EN',
+			detectedLanguage: { language: 'EN', isConfident: true },
 			translatedText: 'translated',
 			alternatives: []
 		});
+	});
+
+	it('returns 413 for oversized request body', async () => {
+		const response = await callPOST({ q: 'hello', target: 'en' }, { contentLength: 200000 });
+		expect(response.status).toBe(413);
+		expect(await response.json()).toEqual({ error: 'Request body too large' });
 	});
 
 	it('returns 400 for invalid JSON body', async () => {
@@ -128,23 +147,35 @@ describe('POST /translate', () => {
 		expect(mockTranslate).toHaveBeenCalledWith('hello', 'AUTO', 'FR', 3);
 	});
 
-	it('returns 500 when translate throws', async () => {
+	it('returns generic 500 message when translate throws', async () => {
 		mockTranslate.mockRejectedValue(new Error('API down'));
 		const response = await callPOST({ target: 'en', q: 'hello' });
 		expect(response.status).toBe(500);
-		expect(await response.json()).toEqual({ error: 'API down' });
+		expect(await response.json()).toEqual({ error: 'Translation failed. Please try again later.' });
+	});
+
+	it('passes through rate limit error with 429 status', async () => {
+		mockTranslate.mockRejectedValue(
+			new Error(
+				"Hmmm... looks like this server gettin' a bit too popular and making too many requests to DeepL API, try again later."
+			)
+		);
+		const response = await callPOST({ target: 'en', q: 'hello' });
+		expect(response.status).toBe(429);
+		const data = await response.json();
+		expect(data.error).toContain('too many requests');
 	});
 
 	it('returns translation result on success', async () => {
 		mockTranslate.mockResolvedValue({
-			detectedLanguage: 'EN',
+			detectedLanguage: { language: 'EN', isConfident: true },
 			translatedText: 'bonjour',
 			alternatives: ['salut']
 		});
 		const response = await callPOST({ target: 'fr', q: 'hello' });
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({
-			detectedLanguage: 'EN',
+			detectedLanguage: { language: 'EN', isConfident: true },
 			translatedText: 'bonjour',
 			alternatives: ['salut']
 		});
@@ -153,12 +184,12 @@ describe('POST /translate', () => {
 	it('handles batch translation', async () => {
 		mockTranslate
 			.mockResolvedValueOnce({
-				detectedLanguage: 'EN',
+				detectedLanguage: { language: 'EN', isConfident: true },
 				translatedText: 'bonjour',
 				alternatives: []
 			})
 			.mockResolvedValueOnce({
-				detectedLanguage: 'EN',
+				detectedLanguage: { language: 'EN', isConfident: true },
 				translatedText: 'monde',
 				alternatives: []
 			});
@@ -166,7 +197,10 @@ describe('POST /translate', () => {
 		const response = await callPOST({ target: 'fr', q: ['hello', 'world'] });
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({
-			detectedLanguage: ['EN', 'EN'],
+			detectedLanguage: [
+				{ language: 'EN', isConfident: true },
+				{ language: 'EN', isConfident: true }
+			],
 			translatedText: ['bonjour', 'monde'],
 			alternatives: [[], []]
 		});

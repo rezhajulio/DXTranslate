@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { translate, type TranslateResult } from './translate';
+import { translate } from './translate';
+import type { TranslateResult } from '$lib/types/api';
 import axios, { AxiosError } from 'axios';
 
 vi.mock('axios');
@@ -51,6 +52,7 @@ describe('translate', () => {
 			'Content-Type': 'application/json',
 			'Accept-Encoding': 'gzip, deflate, br'
 		});
+		expect(config.timeout).toBe(10_000);
 
 		const parsed = JSON.parse(body);
 		expect(parsed.method).toBe('LMT_handle_texts');
@@ -136,5 +138,42 @@ describe('translate', () => {
 		const [, body] = mockedAxios.post.mock.calls[0];
 		const parsed = JSON.parse(body);
 		expect(parsed.params.texts[0].requestAlternatives).toBe(5);
+	});
+
+	it('throws controlled error for malformed response (missing result)', async () => {
+		mockedAxios.post = vi.fn().mockResolvedValue({
+			data: {}
+		});
+
+		await expect(translate('test')).rejects.toThrow('Unexpected response from translation service');
+	});
+
+	it('throws controlled error for malformed response (missing texts)', async () => {
+		mockedAxios.post = vi.fn().mockResolvedValue({
+			data: {
+				result: {
+					lang: 'EN',
+					lang_is_confident: true,
+					texts: []
+				}
+			}
+		});
+
+		await expect(translate('test')).rejects.toThrow('Unexpected response from translation service');
+	});
+
+	it('defaults alternatives to empty array when missing from response', async () => {
+		mockedAxios.post = vi.fn().mockResolvedValue({
+			data: {
+				result: {
+					lang: 'EN',
+					lang_is_confident: true,
+					texts: [{ text: 'Hello' }]
+				}
+			}
+		});
+
+		const result = await translate('test');
+		expect(result.alternatives).toEqual([]);
 	});
 });

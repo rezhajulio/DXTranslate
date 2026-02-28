@@ -2,8 +2,8 @@
 	import { ArrowRightLeft } from 'lucide-svelte';
 	import { langs } from '$lib/constants/langs';
 	import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
-	import type { TranslateResult } from '$lib/translate';
+	import { onMount, onDestroy } from 'svelte';
+	import type { TranslateResult, TranslateErrorResponse } from '$lib/types/api';
 	import LangSelect from '$lib/components/LangSelect.svelte';
 	import DxTextareaInput from '$lib/components/DXTextareaInput.svelte';
 	import DxTextareaResult from '$lib/components/DXTextareaResult.svelte';
@@ -17,18 +17,23 @@
 	let errorMsg = '';
 	let abortController: AbortController | null = null;
 
-	// Placeholder nilai awal
 	let source_lang = writable('');
 	let target_lang = writable('');
 
+	let unsubSource: (() => void) | undefined;
+	let unsubTarget: (() => void) | undefined;
+
 	onMount(() => {
-		// Initialize values from localStorage on the client-side
 		source_lang.set(localStorage.getItem('source_lang') || 'AUTO');
 		target_lang.set(localStorage.getItem('target_lang') || 'EN');
-		
-		// Sync language data with localStorage
-		source_lang.subscribe((value) => localStorage.setItem('source_lang', value));
-		target_lang.subscribe((value) => localStorage.setItem('target_lang', value));
+
+		unsubSource = source_lang.subscribe((value) => localStorage.setItem('source_lang', value));
+		unsubTarget = target_lang.subscribe((value) => localStorage.setItem('target_lang', value));
+	});
+
+	onDestroy(() => {
+		unsubSource?.();
+		unsubTarget?.();
 	});
 
 	async function getTranslate() {
@@ -64,11 +69,16 @@
 				body: JSON.stringify(body),
 				signal: abortController.signal
 			});
-			const data: TranslateResult = await res.json();
 
 			if (!res.ok) {
-				throw new Error(data?.error || 'Hmmm... this is not right, if this error persists, please file a bug report');
+				const errorData: TranslateErrorResponse = await res.json();
+				throw new Error(
+					errorData?.error ||
+						'Hmmm... this is not right, if this error persists, please file a bug report'
+				);
 			}
+
+			const data: TranslateResult = await res.json();
 
 			errorMsg = '';
 			translatedText = data.translatedText;
@@ -93,16 +103,13 @@
 		}
 		[$source_lang, $target_lang] = [$target_lang, $source_lang];
 		[text, translatedText] = [translatedText, text];
+		getTranslate();
 	}
 </script>
 
 <div>
 	{#if errorMsg}
-		<AlertBox
-			variant="danger"
-			title="Translation Error"
-			description={errorMsg}
-		/>
+		<AlertBox variant="danger" title="Translation Error" description={errorMsg} />
 	{/if}
 	<div class="lang-select">
 		<LangSelect
@@ -131,7 +138,7 @@
 		/>
 	</div>
 	<div class="grid dxtranslate-form">
-		<DxTextareaInput bind:value={text} on:dx-input={(e) => getTranslate()} />
+		<DxTextareaInput bind:value={text} on:dx-input={() => getTranslate()} />
 		<DxTextareaResult value={translatedText} {alternatives} {isLoading} />
 	</div>
 </div>

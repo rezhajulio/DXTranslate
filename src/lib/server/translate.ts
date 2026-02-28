@@ -1,38 +1,21 @@
 import axios, { AxiosError } from 'axios';
 import https from 'https';
 import crypto from 'crypto';
+import type { TranslateResult } from '$lib/types/api';
 
-export interface TranslateResult {
-	detectedLanguage: {
-		language: string;
-		isConfident: boolean;
-	};
-	translatedText: string;
-	alternatives: string[];
-	message?: string;
-	error?: string;
-}
+export type { TranslateResult };
 
-const DEEPL_BASE_URL = 'https://www2.deepl.com/jsonrpc';
+const DEEPL_BASE_URL = process.env.DEEPL_BASE_URL ?? 'https://www2.deepl.com/jsonrpc';
+const REQUEST_TIMEOUT = 10_000;
+
 const headers = {
 	'Content-Type': 'application/json',
 	'Accept-Encoding': 'gzip, deflate, br'
-	// Accept: '*/*',
-	// 'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh-HK;q=0.6,zh;q=0.5',
-	// 'Pragma': 'no-cache',
-	// 'Priority': 'u=1, i',
-	// 'Sec-Fetch-Dest': 'empty',
-	// 'Sec-Fetch-Mode': 'cors',
-	// 'Sec-Fetch-Site': 'none',
-	// 'User-Agent': 'DeepLBrowserExtension/1.28.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-	// Connection: 'keep-alive'
 };
 
-function getHttpsAgent(): https.Agent {
-	// get default ciphers
+// Shuffle ciphers once at module load for TLS fingerprint variation
+function createHttpsAgent(): https.Agent {
 	const defaultCiphers = crypto.constants.defaultCipherList.split(':');
-
-	// shuffle default ciphers
 	const shuffledCiphers = [
 		...defaultCiphers.slice(0, 3),
 		...defaultCiphers
@@ -42,13 +25,13 @@ function getHttpsAgent(): https.Agent {
 			.map((o: { cipher: string }) => o.cipher)
 	].join(':');
 
-	// create https agent
-	const httpsAgent = new https.Agent({
-		ciphers: shuffledCiphers
+	return new https.Agent({
+		ciphers: shuffledCiphers,
+		keepAlive: true
 	});
-
-	return httpsAgent;
 }
+
+const httpsAgent = createHttpsAgent();
 
 function getICount(translateText: string): number {
 	return (translateText || '').split('i').length - 1;
@@ -103,15 +86,22 @@ export async function translate(
 	try {
 		const response = await axios.post(DEEPL_BASE_URL, postDataStr, {
 			headers,
-			httpsAgent: getHttpsAgent()
+			httpsAgent,
+			timeout: REQUEST_TIMEOUT
 		});
+
+		const resultData = response.data?.result;
+		if (!resultData?.texts?.[0]) {
+			throw new Error('Unexpected response from translation service');
+		}
+
 		const result: TranslateResult = {
 			detectedLanguage: {
-				language: response.data.result.lang,
-				isConfident: response.data.result.lang_is_confident
+				language: resultData.lang,
+				isConfident: resultData.lang_is_confident
 			},
-			translatedText: response.data.result.texts[0].text,
-			alternatives: response.data.result.texts[0].alternatives.map(
+			translatedText: resultData.texts[0].text,
+			alternatives: (resultData.texts[0].alternatives ?? []).map(
 				(alternative: { text: string }) => alternative.text
 			)
 		};

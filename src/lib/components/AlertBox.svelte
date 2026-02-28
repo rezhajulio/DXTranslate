@@ -24,7 +24,13 @@
 </script>
 
 <article class="alert" style:--accent={accentColor} data-variant={variant} role="alert">
-	<Icon size={20} strokeWidth={2} color={accentColor} style="margin-top: 0.25rem;" />
+	<svelte:component
+		this={Icon}
+		size={20}
+		strokeWidth={2}
+		color={accentColor}
+		style="margin-top: 0.25rem;"
+	/>
 	<div>
 		<strong>{title}</strong>
 		<p>{description}</p>

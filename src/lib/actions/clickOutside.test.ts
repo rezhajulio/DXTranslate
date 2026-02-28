@@ -4,14 +4,14 @@ import clickOutside from './clickOutside';
 describe('clickOutside', () => {
 	let node: HTMLElement;
 	let outsideElement: HTMLElement;
-	let callback: ReturnType<typeof vi.fn>;
+	let callback: ReturnType<typeof vi.fn<() => void>>;
 
 	beforeEach(() => {
 		node = document.createElement('div');
 		outsideElement = document.createElement('div');
 		document.body.appendChild(node);
 		document.body.appendChild(outsideElement);
-		callback = vi.fn();
+		callback = vi.fn<() => void>();
 	});
 
 	afterEach(() => {
@@ -44,6 +44,32 @@ describe('clickOutside', () => {
 		action.destroy();
 
 		outsideElement.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+		expect(callback).not.toHaveBeenCalled();
+	});
+
+	it('calls callback when Escape key is pressed', () => {
+		clickOutside(node, callback);
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+		expect(callback).toHaveBeenCalledTimes(1);
+	});
+
+	it('does NOT call callback for non-Escape keys', () => {
+		clickOutside(node, callback);
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+		expect(callback).not.toHaveBeenCalled();
+	});
+
+	it('destroy removes the keydown listener', () => {
+		const action = clickOutside(node, callback);
+
+		action.destroy();
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 
 		expect(callback).not.toHaveBeenCalled();
 	});

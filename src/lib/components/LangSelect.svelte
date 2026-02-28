@@ -28,7 +28,7 @@
 </script>
 
 <select aria-label={label} bind:value on:change={handleChange} {disabled} required>
-	{#each langs as lang}
+	{#each langs as lang (lang.code)}
 		<option value={lang.code}>{getOptionLabel(lang)}</option>
 	{/each}
 </select>

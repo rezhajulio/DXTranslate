@@ -1,4 +1,4 @@
-import { translate } from '$lib/translate';
+import { translate } from '$lib/server/translate';
 import { langs } from '$lib/constants/langs';
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
@@ -7,12 +7,20 @@ const VALID_LANG_CODES = new Set(langs.map((l) => l.code));
 const MAX_TEXT_LENGTH = 10000;
 const MAX_BATCH_SIZE = 10;
 const MAX_ALTERNATIVES = 5;
+const MAX_BODY_SIZE = 102400; // 100KB
+
+const RATE_LIMIT_PATTERN = /too many requests/i;
 
 function isValidLangCode(code: unknown): code is string {
 	return typeof code === 'string' && VALID_LANG_CODES.has(code.toUpperCase());
 }
 
 export const POST: RequestHandler = async ({ request }) => {
+	const contentLength = Number(request.headers.get('content-length') || 0);
+	if (contentLength > MAX_BODY_SIZE) {
+		return json({ error: 'Request body too large' }, { status: 413 });
+	}
+
 	let body: unknown;
 	try {
 		body = await request.json();
@@ -82,6 +90,11 @@ export const POST: RequestHandler = async ({ request }) => {
 	} catch (error: unknown) {
 		const message = error instanceof Error ? error.message : 'Translation failed';
 		console.error('Translation error:', message);
-		return json({ error: message }, { status: 500 });
+
+		if (RATE_LIMIT_PATTERN.test(message)) {
+			return json({ error: message }, { status: 429 });
+		}
+
+		return json({ error: 'Translation failed. Please try again later.' }, { status: 500 });
 	}
 };

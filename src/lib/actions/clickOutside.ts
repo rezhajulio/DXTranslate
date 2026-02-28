@@ -6,11 +6,19 @@ export default function clickOutside(node: HTMLElement, callbackFunction: () => 
 		}
 	};
 
+	const handleKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'Escape') {
+			callbackFunction();
+		}
+	};
+
 	document.addEventListener('click', handleClick, true);
+	document.addEventListener('keydown', handleKeydown, true);
 
 	return {
 		destroy() {
 			document.removeEventListener('click', handleClick, true);
+			document.removeEventListener('keydown', handleKeydown, true);
 		}
 	};
 }

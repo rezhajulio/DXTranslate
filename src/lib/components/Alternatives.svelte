@@ -20,7 +20,7 @@
 	{#if alternatives.length}
 		<div class="dx-alternatives-container">
 			<h4 class="dx-alternatives-title">Alternatives :</h4>
-			{#each alternatives as alt, i}
+			{#each alternatives as alt, i (i)}
 				<div class="dx-alternatives-item">
 					<p class="dx-alternatives-text">{alt}</p>
 					<button

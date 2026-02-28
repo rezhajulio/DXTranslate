@@ -3,12 +3,17 @@
 	import debounce from '$lib/actions/debounce';
 	import { createEventDispatcher } from 'svelte';
 
-	const dispatch = createEventDispatcher();
+	const MAX_LENGTH = 10000;
+	const WARN_THRESHOLD = 9000;
+
+	const dispatch = createEventDispatcher<{ 'dx-input': { value: string } }>();
 	export let value = '';
 
 	function handleValue() {
 		dispatch('dx-input', { value });
 	}
+
+	$: isOverLimit = value.length > WARN_THRESHOLD;
 </script>
 
 <div class="dx-textarea-input">
@@ -31,6 +36,9 @@
 			<X size="24" />
 		</button>
 	{/if}
+	<div class="char-counter" class:over-limit={isOverLimit}>
+		{value.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}
+	</div>
 </div>
 
 <style scoped>
@@ -65,5 +73,19 @@
 
 	.delete-button:hover {
 		color: var(--pico-contrast);
+	}
+
+	.char-counter {
+		position: absolute;
+		bottom: 0.5rem;
+		right: 0.75rem;
+		font-size: 0.8em;
+		color: var(--pico-muted-color);
+		text-align: right;
+		pointer-events: none;
+	}
+
+	.char-counter.over-limit {
+		color: var(--pico-color-red-600);
 	}
 </style>
