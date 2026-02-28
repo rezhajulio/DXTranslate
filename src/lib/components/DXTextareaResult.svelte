@@ -20,8 +20,16 @@
 	}
 </script>
 
-<div class="dx-textarea">
-	<textarea aria-label="Translation result" {value} readonly></textarea>
+<div class="dx-textarea" aria-busy={isLoading}>
+	<span class="sr-only" aria-live="polite">
+		{isLoading ? 'Translating…' : ''}
+	</span>
+	<textarea
+		aria-label="Translation result"
+		{value}
+		readonly
+		placeholder="Translation will appear here..."
+	></textarea>
 	{#if value}
 		<button
 			type="button"
@@ -74,6 +82,18 @@
 
 	.copy-button:hover {
 		color: var(--pico-contrast);
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	/* From Uiverse.io by satyamchaudharydev */

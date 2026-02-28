@@ -8,11 +8,17 @@
 	let theme: ThemeOptions = 'system';
 	let isExpanded = false;
 
+	const themeOptions: { value: ThemeOptions; label: string; icon: typeof MonitorCog }[] = [
+		{ value: 'system', label: 'System', icon: MonitorCog },
+		{ value: 'light', label: 'Light', icon: Sun },
+		{ value: 'dark', label: 'Dark', icon: Moon }
+	];
+
 	function changeTheme(selectedTheme: ThemeOptions) {
 		theme = selectedTheme;
+		isExpanded = false;
 
 		if (browser) {
-			const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 			if (theme === 'system') {
 				document.documentElement.removeAttribute('data-theme');
 				localStorage.removeItem('theme');
@@ -20,6 +26,48 @@
 				document.documentElement.setAttribute('data-theme', theme);
 				localStorage.setItem('theme', theme);
 			}
+		}
+	}
+
+	function handleMenuKeydown(event: KeyboardEvent) {
+		const items = Array.from(
+			(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]')
+		);
+		const currentIndex = items.indexOf(event.target as HTMLButtonElement);
+
+		switch (event.key) {
+			case 'ArrowDown': {
+				event.preventDefault();
+				const next = (currentIndex + 1) % items.length;
+				items[next].focus();
+				break;
+			}
+			case 'ArrowUp': {
+				event.preventDefault();
+				const prev = (currentIndex - 1 + items.length) % items.length;
+				items[prev].focus();
+				break;
+			}
+			case 'Home':
+				event.preventDefault();
+				items[0].focus();
+				break;
+			case 'End':
+				event.preventDefault();
+				items[items.length - 1].focus();
+				break;
+		}
+	}
+
+	function toggleMenu() {
+		isExpanded = !isExpanded;
+		if (isExpanded) {
+			requestAnimationFrame(() => {
+				const selected = document.querySelector<HTMLButtonElement>(
+					'.theme-menu [aria-checked="true"]'
+				);
+				selected?.focus();
+			});
 		}
 	}
 
@@ -32,45 +80,31 @@
 <div use:clickOutside={() => (isExpanded = false)} class="dropdown">
 	<button
 		aria-label="Switch theme"
+		aria-haspopup="true"
 		aria-expanded={isExpanded}
 		type="button"
 		class="theme-button"
-		on:click={() => (isExpanded = !isExpanded)}
+		on:click={toggleMenu}
 	>
 		<SwatchBook />
 	</button>
 	{#if isExpanded}
-		<ul class="theme-menu" role="tablist">
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li
-				role="tab"
-				tabindex={theme === 'system' ? 0 : -1}
-				aria-selected={theme === 'system'}
-				on:click={() => changeTheme('system')}
-			>
-				<MonitorCog />
-				<span>System</span>
-			</li>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li
-				role="tab"
-				tabindex={theme === 'light' ? 0 : -1}
-				aria-selected={theme === 'light'}
-				on:click={() => changeTheme('light')}
-			>
-				<Sun />
-				<span>Light</span>
-			</li>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li
-				role="tab"
-				tabindex={theme === 'dark' ? 0 : -1}
-				aria-selected={theme === 'dark'}
-				on:click={() => changeTheme('dark')}
-			>
-				<Moon />
-				<span>Dark</span>
-			</li>
+		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+		<ul class="theme-menu" role="menu" on:keydown={handleMenuKeydown}>
+			{#each themeOptions as option}
+				<li role="none">
+					<button
+						role="menuitemradio"
+						aria-checked={theme === option.value}
+						type="button"
+						class="theme-menu-item"
+						on:click={() => changeTheme(option.value)}
+					>
+						<svelte:component this={option.icon} size={20} />
+						<span>{option.label}</span>
+					</button>
+				</li>
+			{/each}
 		</ul>
 	{/if}
 </div>
@@ -107,9 +141,18 @@
 		border: 1px solid var(--pico-dropdown-border-color);
 		right: 0;
 		top: 36px;
+		padding: 0;
+		margin: 0;
+		list-style: none;
 	}
 
 	.theme-menu li {
+		width: 100%;
+		padding: 0;
+		margin: 0;
+	}
+
+	.theme-menu-item {
 		display: flex;
 		align-items: center;
 		justify-content: start;
@@ -118,9 +161,20 @@
 		padding: 0.6rem 0.8rem;
 		user-select: none;
 		width: 100%;
+		background: transparent;
+		border: none;
+		color: inherit;
+		font-size: inherit;
+		margin: 0;
 	}
 
-	.theme-menu li[aria-selected='true'] {
+	.theme-menu-item:focus {
+		outline: 2px solid var(--pico-primary);
+		outline-offset: -2px;
+		box-shadow: none;
+	}
+
+	.theme-menu-item[aria-checked='true'] {
 		background-color: var(--pico-form-element-selected-background-color);
 	}
 </style>

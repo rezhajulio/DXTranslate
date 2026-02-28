@@ -19,6 +19,10 @@ The official [DeepL website](https://deepl.com) can feel a bit bloated and slow 
 - **Self-Host**: Want to run it on your own server? Go for it! 💻🚀
 - **Lightweight**: Fast response times without all the bloat. ⚡
 
+## ⚠️ Disclaimer
+
+DXTranslate uses DeepL's internal browser endpoint, **not** the official API. This may violate DeepL's Terms of Service — use at your own risk. The endpoint may stop working without notice.
+
 ## 📦 Getting Started
 
 ```bash
@@ -34,6 +38,12 @@ pnpm i
 # start dev sever
 pnpm dev
 ```
+
+## ⚙️ Configuration
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `DEEPL_BASE_URL` | `https://www2.deepl.com/jsonrpc` | Override the DeepL endpoint URL (useful for proxies) |
 
 ## 🤝 Contributing
 
