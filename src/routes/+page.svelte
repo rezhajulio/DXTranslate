@@ -3,7 +3,7 @@
 	import { langs } from '$lib/constants/langs';
 	import { writable } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
-	import type { TranslateResult } from '$lib/types/api';
+	import type { TranslateResult, TranslateErrorResponse } from '$lib/types/api';
 	import LangSelect from '$lib/components/LangSelect.svelte';
 	import DxTextareaInput from '$lib/components/DXTextareaInput.svelte';
 	import DxTextareaResult from '$lib/components/DXTextareaResult.svelte';
@@ -69,14 +69,16 @@
 				body: JSON.stringify(body),
 				signal: abortController.signal
 			});
-			const data: TranslateResult = await res.json();
 
 			if (!res.ok) {
+				const errorData: TranslateErrorResponse = await res.json();
 				throw new Error(
-					data?.error ||
+					errorData?.error ||
 						'Hmmm... this is not right, if this error persists, please file a bug report'
 				);
 			}
+
+			const data: TranslateResult = await res.json();
 
 			errorMsg = '';
 			translatedText = data.translatedText;

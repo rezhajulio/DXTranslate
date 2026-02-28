@@ -4,14 +4,14 @@ import clickOutside from './clickOutside';
 describe('clickOutside', () => {
 	let node: HTMLElement;
 	let outsideElement: HTMLElement;
-	let callback: ReturnType<typeof vi.fn>;
+	let callback: ReturnType<typeof vi.fn<() => void>>;
 
 	beforeEach(() => {
 		node = document.createElement('div');
 		outsideElement = document.createElement('div');
 		document.body.appendChild(node);
 		document.body.appendChild(outsideElement);
-		callback = vi.fn();
+		callback = vi.fn<() => void>();
 	});
 
 	afterEach(() => {
