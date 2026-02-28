@@ -72,7 +72,10 @@
 			const data: TranslateResult = await res.json();
 
 			if (!res.ok) {
-				throw new Error(data?.error || 'Hmmm... this is not right, if this error persists, please file a bug report');
+				throw new Error(
+					data?.error ||
+						'Hmmm... this is not right, if this error persists, please file a bug report'
+				);
 			}
 
 			errorMsg = '';
@@ -104,11 +107,7 @@
 
 <div>
 	{#if errorMsg}
-		<AlertBox
-			variant="danger"
-			title="Translation Error"
-			description={errorMsg}
-		/>
+		<AlertBox variant="danger" title="Translation Error" description={errorMsg} />
 	{/if}
 	<div class="lang-select">
 		<LangSelect

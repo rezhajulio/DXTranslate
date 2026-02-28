@@ -31,7 +31,9 @@
 
 	function handleMenuKeydown(event: KeyboardEvent) {
 		const items = Array.from(
-			(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]')
+			(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>(
+				'[role="menuitemradio"]'
+			)
 		);
 		const currentIndex = items.indexOf(event.target as HTMLButtonElement);
 

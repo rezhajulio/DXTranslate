@@ -145,9 +145,7 @@ describe('translate', () => {
 			data: {}
 		});
 
-		await expect(translate('test')).rejects.toThrow(
-			'Unexpected response from translation service'
-		);
+		await expect(translate('test')).rejects.toThrow('Unexpected response from translation service');
 	});
 
 	it('throws controlled error for malformed response (missing texts)', async () => {
@@ -161,9 +159,7 @@ describe('translate', () => {
 			}
 		});
 
-		await expect(translate('test')).rejects.toThrow(
-			'Unexpected response from translation service'
-		);
+		await expect(translate('test')).rejects.toThrow('Unexpected response from translation service');
 	});
 
 	it('defaults alternatives to empty array when missing from response', async () => {

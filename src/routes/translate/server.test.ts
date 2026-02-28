@@ -10,7 +10,10 @@ import { translate } from '$lib/server/translate';
 
 const mockTranslate = vi.mocked(translate);
 
-function createRequest(body: unknown, options?: { invalidJson?: boolean; contentLength?: number }): Request {
+function createRequest(
+	body: unknown,
+	options?: { invalidJson?: boolean; contentLength?: number }
+): Request {
 	if (options?.invalidJson) {
 		return new Request('http://localhost/translate', {
 			method: 'POST',
@@ -32,7 +35,10 @@ function createRequest(body: unknown, options?: { invalidJson?: boolean; content
 	});
 }
 
-async function callPOST(body: unknown, options?: { invalidJson?: boolean; contentLength?: number }) {
+async function callPOST(
+	body: unknown,
+	options?: { invalidJson?: boolean; contentLength?: number }
+) {
 	const request = createRequest(body, options);
 	return POST({ request } as Parameters<typeof POST>[0]);
 }
@@ -150,7 +156,9 @@ describe('POST /translate', () => {
 
 	it('passes through rate limit error with 429 status', async () => {
 		mockTranslate.mockRejectedValue(
-			new Error("Hmmm... looks like this server gettin' a bit too popular and making too many requests to DeepL API, try again later.")
+			new Error(
+				"Hmmm... looks like this server gettin' a bit too popular and making too many requests to DeepL API, try again later."
+			)
 		);
 		const response = await callPOST({ target: 'en', q: 'hello' });
 		expect(response.status).toBe(429);

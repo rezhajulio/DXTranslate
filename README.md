@@ -41,9 +41,9 @@ pnpm dev
 
 ## ⚙️ Configuration
 
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `DEEPL_BASE_URL` | `https://www2.deepl.com/jsonrpc` | Override the DeepL endpoint URL (useful for proxies) |
+| Environment Variable | Default                          | Description                                          |
+| -------------------- | -------------------------------- | ---------------------------------------------------- |
+| `DEEPL_BASE_URL`     | `https://www2.deepl.com/jsonrpc` | Override the DeepL endpoint URL (useful for proxies) |
 
 ## 🤝 Contributing
 
