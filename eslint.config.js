@@ -24,6 +24,10 @@ export default tseslint.config(
 			parserOptions: {
 				parser: tseslint.parser
 			}
+		},
+		rules: {
+			// Svelte 5 only — not applicable on Svelte 4
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	},
 	{

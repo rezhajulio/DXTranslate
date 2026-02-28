@@ -137,7 +137,7 @@
 		/>
 	</div>
 	<div class="grid dxtranslate-form">
-		<DxTextareaInput bind:value={text} on:dx-input={(e) => getTranslate()} />
+		<DxTextareaInput bind:value={text} on:dx-input={() => getTranslate()} />
 		<DxTextareaResult value={translatedText} {alternatives} {isLoading} />
 	</div>
 </div>

@@ -89,9 +89,8 @@
 		<SwatchBook />
 	</button>
 	{#if isExpanded}
-		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 		<ul class="theme-menu" role="menu" on:keydown={handleMenuKeydown}>
-			{#each themeOptions as option}
+			{#each themeOptions as option (option.value)}
 				<li role="none">
 					<button
 						role="menuitemradio"
